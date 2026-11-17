@@ -1,0 +1,231 @@
+# Rime dictionary
+# Personal common-word supplement, 2026-11-17
+# Keep manual phrases and learned user dictionaries separate.
+---
+name: pinyin_simp_extra
+version: "2026.11.17"
+sort: by_weight
+columns: [text, code, weight]
+...
+
+辛苦了	xin ku le	1000
+麻烦你	ma fan ni	1000
+稍等一下	shao deng yi xia	1000
+没问题	mei wen ti	1000
+收到了	shou dao le	1000
+看到了	kan dao le	1000
+知道了	zhi dao le	1000
+明白了	ming bai le	1000
+真的假的	zhen de jia de	1000
+太好了	tai hao le	1000
+方便吗	fang bian ma	1000
+可以的	ke yi de	1000
+等一下	deng yi xia	1000
+等会儿	deng hui er	1000
+发给我	fa gei wo	1000
+帮个忙	bang ge mang	1000
+保持联系	bao chi lian xi	1000
+处理一下	chu li yi xia	1000
+有空的时候	you kong de shi hou	1000
+需求文档	xu qiu wen dang	1000
+项目进度	xiang mu jin du	1000
+待办事项	dai ban shi xiang	1000
+复盘	fu pan	1000
+已读	yi du	1000
+未读	wei du	1000
+发件人	fa jian ren	1000
+电子签名	dian zi qian ming	1000
+审批流	shen pi liu	1000
+数据看板	shu ju kan ban	1000
+降本增效	jiang ben zeng xiao	1000
+提测	ti ce	1000
+联测	lian ce	1000
+需求评审	xu qiu ping shen	1000
+技术方案	ji shu fang an	1000
+交付时间	jiao fu shi jian	1000
+参与人	can yu ren	1000
+完成率	wan cheng lv	1000
+风险评估	feng xian ping gu	1000
+落地方案	luo di fang an	1000
+优化方案	you hua fang an	1000
+问题定位	wen ti ding wei	1000
+问题反馈	wen ti fan kui	1000
+故障排查	gu zhang pai cha	1000
+接口文档	jie kou wen dang	1000
+代码评审	dai ma ping shen	1000
+公众号	gong zhong hao	1000
+朋友圈	peng you quan	1000
+短视频	duan shi pin	1000
+直播间	zhi bo jian	1000
+视频号	shi pin hao	1000
+扫码	sao ma	1000
+拼多多	pin duo duo	1000
+取件码	qu jian ma	1000
+网约车	wang yue che	1000
+刷脸	shua lian	1000
+抖音	dou yin	1000
+哔哩哔哩	bi li bi li	1000
+小红书	xiao hong shu	1000
+饿了么	e le me	1000
+美团	mei tuan	1000
+高德地图	gao de di tu	1000
+云闪付	yun shan fu	1000
+云盘	yun pan	1000
+百度网盘	bai du wang pan	1000
+免密支付	mian mi zhi fu	1000
+移动支付	yi dong zhi fu	1000
+电子发票	dian zi fa piao	1000
+健康码	jian kang ma	1000
+行程码	xing cheng ma	1000
+共享单车	gong xiang dan che	1000
+充电宝	chong dian bao	1000
+充电桩	chong dian zhuang	1000
+新能源	xin neng yuan	1000
+新能源汽车	xin neng yuan qi che	1000
+纯电	chun dian	1000
+混动	hun dong	1000
+低电量	di dian liang	1000
+无线充电	wu xian chong dian	1000
+智能家居	zhi neng jia ju	1000
+人脸识别	ren lian shi bie	1000
+免流量	mian liu liang	1000
+在线客服	zai xian ke fu	1000
+自助服务	zi zhu fu wu	1000
+一键登录	yi jian deng lu	1000
+自动续费	zi dong xu fei	1000
+取消订阅	qu xiao ding yue	1000
+私信	si xin	1000
+拉黑	la hei	1000
+点赞	dian zan	1000
+已读不回	yi du bu hui	1000
+在线会议	zai xian hui yi	1000
+语音通话	yu yin tong hua	1000
+屏幕共享	ping mu gong xiang	1000
+远程办公	yuan cheng ban gong	1000
+居家办公	ju jia ban gong	1000
+看诊	kan zhen	1000
+核酸检测	he suan jian ce	1000
+外键	wai jian	1000
+锁表	suo biao	1000
+慢查询	man cha xun	1000
+配置项	pei zhi xiang	1000
+候选词	hou xuan ci	1000
+动态调频	dong tai tiao pin	1000
+重新部署	chong xin bu shu	1000
+自动部署	zi dong bu shu	1000
+持续集成	chi xu ji cheng	1000
+持续交付	chi xu jiao fu	1000
+空指针	kong zhi zhen	1000
+内存泄漏	nei cun xie lou	1000
+线程池	xian cheng chi	1000
+子进程	zi jin cheng	1000
+非阻塞	fei zu se	1000
+熔断	rong duan	1000
+幂等	mi deng	1000
+幂等性	mi deng xing	1000
+消息队列	xiao xi dui lie	1000
+微服务	wei fu wu	1000
+容器化	rong qi hua	1000
+虚拟环境	xu ni huan jing	1000
+云服务	yun fu wu	1000
+云服务器	yun fu wu qi	1000
+云原生	yun yuan sheng	1000
+对象存储	dui xiang cun chu	1000
+本地存储	ben di cun chu	1000
+闭源	bi yuan	1000
+代码仓库	dai ma cang ku	1000
+版本控制	ban ben kong zhi	1000
+拉取	la qu	1000
+代码补全	dai ma bu quan	1000
+自动补全	zi dong bu quan	1000
+语法高亮	yu fa gao liang	1000
+访问令牌	fang wen ling pai	1000
+身份认证	shen fen ren zheng	1000
+私钥	si yue	1000
+依赖项	yi lai xiang	1000
+可维护性	ke wei hu xing	1000
+高可用	gao ke yong	1000
+可观测性	ke guan ce xing	1000
+解耦	jie ou	1000
+组件化	zu jian hua	1000
+全栈	quan zhan	1000
+跨域	kua yu	1000
+跨浏览器	kua liu lan qi	1000
+接口调用	jie kou diao yong	1000
+接口超时	jie kou chao shi	1000
+集成测试	ji cheng ce shi	1000
+端到端测试	duan dao duan ce shi	1000
+回归测试	hui gui ce shi	1000
+测试环境	ce shi huan jing	1000
+生产环境	sheng chan huan jing	1000
+预发布	yu fa bu	1000
+灰度发布	hui du fa bu	1000
+持久化	chi jiu hua	1000
+反序列化	fan xu lie hua	1000
+正则表达式	zheng ze biao da shi	1000
+键值对	jian zhi dui	1000
+占位符	zhan wei fu	1000
+空字符串	kong zi fu chuan	1000
+空白字符	kong bai zi fu	1000
+中文编码	zhong wen bian ma	1000
+哈希	ha xi	1000
+静态检查	jing tai jian cha	1000
+自动启动	zi dong qi dong	1000
+机器学习	ji qi xue xi	1000
+深度学习	shen du xue xi	1000
+语言模型	yu yan mo xing	1000
+大语言模型	da yu yan mo xing	1000
+多模态	duo mo tai	1000
+提示词	ti shi ci	1000
+提示工程	ti shi gong cheng	1000
+上下文窗口	shang xia wen chuang kou	1000
+上下文压缩	shang xia wen ya suo	1000
+上下文工程	shang xia wen gong cheng	1000
+智能体	zhi neng ti	1000
+代理工具	dai li gong ju	1000
+智能助手	zhi neng zhu shou	1000
+代码生成	dai ma sheng cheng	1000
+图像生成	tu xiang sheng cheng	1000
+文生图	wen sheng tu	1000
+文生视频	wen sheng shi pin	1000
+图生视频	tu sheng shi pin	1000
+语音识别	yu yin shi bie	1000
+语音合成	yu yin he cheng	1000
+向量化	xiang liang hua	1000
+向量数据库	xiang liang shu ju ku	1000
+检索增强生成	jian suo zeng qiang sheng cheng	1000
+预训练	yu xun lian	1000
+推理模型	tui li mo xing	1000
+推理能力	tui li neng li	1000
+推理速度	tui li su du	1000
+训练数据	xun lian shu ju	1000
+数据标注	shu ju biao zhu	1000
+分词器	fen ci qi	1000
+词元	ci yuan	1000
+模型参数	mo xing can shu	1000
+参数量	can shu liang	1000
+端侧	duan ce	1000
+端侧模型	duan ce mo xing	1000
+本地模型	ben di mo xing	1000
+本地部署	ben di bu shu	1000
+模型部署	mo xing bu shu	1000
+开源模型	kai yuan mo xing	1000
+闭源模型	bi yuan mo xing	1000
+多轮对话	duo lun dui hua	1000
+工具调用	gong ju diao yong	1000
+函数调用	han shu diao yong	1000
+人机交互	ren ji jiao hu	1000
+自动编程	zi dong bian cheng	1000
+人工审核	ren gong shen he	1000
+工作流编排	gong zuo liu bian pai	1000
+微信	wei xin	1000
+色值	se zhi	1000
+算力	suan li	1000
+自造词	zi zao ci	1000
+天猫	tian mao	1000
+蛋疼	dan teng	1000
+缺词	que ci	1000
+大模型	da mo xing	1000
+闲鱼	xian yu	1000
+鼻咽癌	bi yan ai	1000
+顺铂	shun bo	1000

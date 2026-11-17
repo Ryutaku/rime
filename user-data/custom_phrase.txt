@@ -15,3 +15,8 @@
 京东	yiai	100
 天猫	gdqt	100
 蛋疼	nhut	100
+缺词	rmyn	100
+大模型	dsga	100
+闲鱼	usqg	100
+鼻咽癌	tkuk	100
+顺铂	kdqr	100

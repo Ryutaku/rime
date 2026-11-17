@@ -9,8 +9,10 @@
 
 ---
 name: pinyin_simp
-version: "0.1"
+version: "2026.11.17.extra1"
 sort: by_weight
+import_tables:
+  - pinyin_simp_extra
 ...
 
 鼥	ba	0
