@@ -1,0 +1,48 @@
+patch:
+  schema/name: 五笔拼音混输·数字直输
+  engine/processors:
+  - lua_processor@*hide_soft_cursor
+  - lua_processor@*manual_phrase
+  - ascii_composer
+  - lua_processor@*number_input*processor
+  - recognizer
+  - key_binder
+  - speller
+  - punctuator
+  - selector
+  - navigator
+  - express_editor
+  engine/translators:
+  - lua_translator@*number_input*translator
+  - table_translator@custom_phrase
+  - punct_translator
+  - reverse_lookup_translator
+  - table_translator
+  recognizer/patterns/raw_numbers: ^.*[0-9].*$
+  recognizer/patterns/raw_symbols: '^[A-Za-z].*[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E].*$'
+  recognizer/patterns/semicolon_ascii: ^;.*$
+  style/label_format: ''
+  custom_phrase:
+    dictionary: ''
+    user_dict: custom_phrase
+    db_class: stabledb
+    enable_completion: false
+    enable_sentence: false
+    initial_quality: 10
+  translator/enable_user_dict: true
+  translator/enable_encoder: true
+  translator/encode_commit_history: true
+  punctuator/import_preset: symbols
+  recognizer/patterns/punct: ^/[A-Za-z]+$
+  switches/+:
+  - name: always_simplified
+    reset: 1
+  engine/filters:
+  - simplifier@always_simplified
+  - uniquifier
+  always_simplified:
+    opencc_config: t2s.json
+    option_name: always_simplified
+    tips: none
+    excluded_types:
+    - literal_ascii

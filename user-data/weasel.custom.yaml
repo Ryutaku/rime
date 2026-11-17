@@ -1,0 +1,42 @@
+customization:
+  distribution_code_name: Weasel
+  distribution_version: 0.17.4.98.f96ed24
+  generator: "Weasel::UIStyleSettings"
+  modified_time: "Tue Nov 17 14:24:30 2026"
+  rime_version: 1.17.0
+patch:
+  "preset_color_schemes/brisk/hilited_back_color": 0x91c823
+  "preset_color_schemes/cool_breeze/candidate_text_color": 0x000000
+  "preset_color_schemes/cool_breeze/comment_text_color": 0x000000
+  "preset_color_schemes/cool_breeze/hilited_candidate_back_color": 0x91c823
+  "preset_color_schemes/cool_breeze/hilited_candidate_text_color": 0xffffff
+  "preset_color_schemes/cool_breeze/hilited_comment_text_color": 0xffffff
+  "preset_color_schemes/cool_breeze/hilited_label_color": 0xffffff
+  "preset_color_schemes/cool_breeze/label_color": 0x000000
+  "preset_color_schemes/cool_breeze/text_color": 0xffffff
+  "style/antialias_mode": cleartype
+  "style/color_scheme": cool_breeze
+  "style/display_tray_icon": false
+  "style/fullscreen": false
+  "style/hover_type": hilite
+  "style/inline_preedit": true
+  "style/layout/border": 0
+  "style/layout/candidate_spacing": 8
+  "style/layout/hilite_padding_y": 4
+  "style/layout/hilited_corner_radius": 6
+  "style/layout/type": horizontal
+  "style/text_orientation": ""
+  "style/vertical_auto_reverse": true
+  "style/vertical_text": false
+
+  # Keep Chinese/English state separate between applications.
+  global_ascii: false
+  # Terminal applications and Xshell start in English mode.
+  "app_options/windowsterminal.exe/ascii_mode": true
+  "app_options/openconsole.exe/ascii_mode": true
+  "app_options/cmd.exe/ascii_mode": true
+  "app_options/conhost.exe/ascii_mode": true
+  "app_options/powershell.exe/ascii_mode": true
+  "app_options/pwsh.exe/ascii_mode": true
+  "app_options/mintty.exe/ascii_mode": true
+  "app_options/xshell.exe/ascii_mode": true

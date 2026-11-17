@@ -1,0 +1,15 @@
+customization:
+  distribution_code_name: Weasel
+  distribution_version: 0.17.4.98.f96ed24
+  generator: "Rime::SwitcherSettings"
+  modified_time: "Tue Nov 17 11:56:06 2026"
+  rime_version: 1.17.0
+patch:
+  schema_list:
+    - {schema: wubi_pinyin}
+  # 中英文切换键改为左、右 Ctrl（commit_code：有未上屏编码时先把它顶出去，再切换）
+  # 左 Shift 原本默认就是切英文，一并关掉，避免和 Ctrl 冲突、打字时误触
+  ascii_composer/switch_key/Control_L: commit_code
+  ascii_composer/switch_key/Control_R: commit_code
+  ascii_composer/switch_key/Shift_L: noop
+  ascii_composer/switch_key/Shift_R: noop
