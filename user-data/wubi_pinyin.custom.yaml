@@ -18,7 +18,7 @@ patch:
   - punct_translator
   - reverse_lookup_translator
   - table_translator
-  recognizer/patterns/raw_numbers: ^.*[0-9].*$
+  recognizer/patterns/raw_numbers: ^[A-Za-z].*[0-9].*$
   recognizer/patterns/raw_symbols: '^[A-Za-z].*[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E].*$'
   recognizer/patterns/semicolon_ascii: ^;.*$
   style/label_format: ''

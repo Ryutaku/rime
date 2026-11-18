@@ -1,5 +1,5 @@
 -- Digits and all printable ASCII punctuation after a letter code are literal input.
--- A leading semicolon starts one temporary ASCII token.
+-- Alt+semicolon starts one temporary ASCII token.
 -- Confirm a literal token with Space or Enter; Escape cancels it.
 local M = {}
 local ACCEPTED, NOOP = 1, 2
@@ -44,8 +44,8 @@ local function literal_symbol(char)
 end
 
 local function raw_input(input)
-  if input:find('%d') then return true end
   if not input:match('^[A-Za-z]') then return false end
+  if input:find('%d') then return true end
   -- Allow existing spelling delimiters before the first literal symbol too.
   for char in input:gmatch('.') do
     if literal_symbol(char) then return true end
@@ -53,11 +53,38 @@ local function raw_input(input)
   return false
 end
 
+local function initial_punctuation(char, key, env)
+  local ctx = env.engine.context
+  if key.keycode > 0x7e or ctx:get_option('ascii_punct') then return char end
+  local shape = ctx:get_option('full_shape') and 'full_shape' or 'half_shape'
+  local mapping = env.engine.schema.config:get_map('punctuator/' .. shape)
+  local definition = mapping and mapping:get(char)
+  if not definition then return char end
+  local choices = definition:get_list()
+  if choices then
+    local first = choices:get_value_at(0)
+    return first and first.value or char
+  end
+  local settings = definition:get_map()
+  if settings and settings:has_key('pair') then return nil end
+  local value = settings and settings:get_value('commit') or definition:get_value()
+  return value and value.value or char
+end
+
 function M.processor(key, env)
-  if key:release() or key:ctrl() or key:alt() or key:super() then return NOOP end
+  if key:release() or key:ctrl() or key:super() then return NOOP end
   local ctx = env.engine.context
   if ctx:get_option('ascii_mode') then return NOOP end
   local code, input = key.keycode, ctx.input
+  local char = printable(key)
+  if key:alt() then
+    if input == '' and not key:shift() and (char == ';' or code == 0x2f
+        or (char == '`' and env.engine.schema.config:get_string('reverse_lookup/prefix') == char)) then
+      ctx:push_input(char)
+      return ACCEPTED
+    end
+    return NOOP
+  end
   local temporary_ascii = input:sub(1, 1) == ';'
   if temporary_ascii or raw_input(input) then
     if code == SPACE or code == RETURN or code == KP_ENTER then
@@ -71,27 +98,26 @@ function M.processor(key, env)
       ctx:pop_input(1)
       return ACCEPTED
     end
-    local char = printable(key)
     if char then
       ctx:push_input(char)
       return ACCEPTED
     end
     return NOOP
   end
-  -- Handle every punctuation key before paging, spelling delimiters, or
-  -- punctuation processing can consume it or commit a candidate.
-  local char = printable(key)
-  if literal_symbol(char) and input:match('^[A-Za-z]') then
-    ctx:push_input(char)
-    return ACCEPTED
-  end
-  if char and char:match('^[0-9]$') then
-    ctx:push_input(char)
-    return ACCEPTED
-  end
-  if char == ';' and input == '' then
-    ctx:push_input(';')
-    return ACCEPTED
+  local digit = char and char:match('^[0-9]$')
+  local symbol = literal_symbol(char)
+  if digit or symbol then
+    if input:match('^[A-Za-z]') then
+      ctx:push_input(char)
+      return ACCEPTED
+    end
+    if input == '' then
+      local text = digit or initial_punctuation(char, key, env)
+      if text then
+        env.engine:commit_text(text)
+        return ACCEPTED
+      end
+    end
   end
   return NOOP
 end
