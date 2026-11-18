@@ -55,18 +55,24 @@ internal static class PhraseNative
     internal static extern bool ShowWindowAsync(IntPtr window, int command);
     [DllImport("user32.dll")]
     internal static extern bool SetForegroundWindow(IntPtr window);
+    [DllImport("user32.dll")]
+    internal static extern IntPtr GetForegroundWindow();
 
     internal static bool ShortcutHeld()
     {
         return (GetAsyncKeyState(0x11) & 0x8000) != 0 ||
                (GetAsyncKeyState(0x10) & 0x8000) != 0 ||
-               (GetAsyncKeyState(0xbb) & 0x8000) != 0;
+               (GetAsyncKeyState(0xbb) & 0x8000) != 0 ||
+               (GetAsyncKeyState(0xbd) & 0x8000) != 0;
     }
 }
 
 internal sealed class PhraseApplicationContext : ApplicationContext
 {
     private readonly ManualPhraseForm form;
+    private readonly ManualPhraseDeleteForm deleteForm;
+    private readonly PhraseDeleteHotkey deleteHotkey;
+    private DateTime lastDeleteHotkey = DateTime.MinValue;
     private readonly FileSystemWatcher watcher;
     private readonly System.Windows.Forms.Timer timer;
     private readonly string request;
@@ -88,10 +94,25 @@ internal sealed class PhraseApplicationContext : ApplicationContext
         // Load the code table and create controls once, before any shortcut request.
         form = new ManualPhraseForm(root);
         IntPtr warmHandle = form.Handle;
+        deleteForm = new ManualPhraseDeleteForm(root);
+        IntPtr deleteHandle = deleteForm.Handle;
+        deleteHotkey = new PhraseDeleteHotkey(OpenDeleteFromHotkey);
         timer = new System.Windows.Forms.Timer();
         timer.Interval = 30;
         timer.Tick += OnTick;
         timer.Start();
+    }
+
+    private void OpenDeleteFromHotkey()
+    {
+        // WM_HOTKEY grants foreground activation rights. Activate here, before
+        // deferring work or waiting for modifier release can lose those rights.
+        lastDeleteHotkey = DateTime.UtcNow;
+        if (form.IsSaving) { form.OpenRequest(""); return; }
+        form.Hide();
+        // A stale pending Lua request must not replace a just-opened search.
+        pending = null;
+        deleteForm.OpenRequest("");
     }
 
     private void OnTick(object sender, EventArgs e)
@@ -116,11 +137,27 @@ internal sealed class PhraseApplicationContext : ApplicationContext
                     }
                 }
             }
-            if (pending != null && (!PhraseNative.ShortcutHeld() || now >= releaseDeadline))
+            if (pending != null && !form.IsSaving && !deleteForm.IsSaving &&
+                (!PhraseNative.ShortcutHeld() || now >= releaseDeadline))
             {
                 string history = pending;
                 pending = null;
-                form.OpenRequest(history);
+                const string deletePrefix = "RIME_PHRASE_V1\tdelete\n";
+                const string addPrefix = "RIME_PHRASE_V1\tadd\n";
+                if (history.StartsWith(deletePrefix, StringComparison.Ordinal))
+                {
+                    // Some frontends also deliver the key to Rime. Ignore that
+                    // duplicate so it cannot clear a search already being typed.
+                    if (DateTime.UtcNow - lastDeleteHotkey < TimeSpan.FromSeconds(1)) return;
+                    form.Hide();
+                    deleteForm.OpenRequest(history.Substring(deletePrefix.Length));
+                }
+                else
+                {
+                    deleteForm.Hide();
+                    form.OpenRequest(history.StartsWith(addPrefix, StringComparison.Ordinal) ?
+                        history.Substring(addPrefix.Length) : history);
+                }
             }
         }
         catch (IOException) { Interlocked.Exchange(ref requestAvailable, 1); }
@@ -131,9 +168,11 @@ internal sealed class PhraseApplicationContext : ApplicationContext
     {
         if (disposing)
         {
+            deleteHotkey.Dispose();
             timer.Dispose();
             watcher.Dispose();
             form.Dispose();
+            deleteForm.Dispose();
         }
         base.Dispose(disposing);
     }
@@ -153,6 +192,7 @@ internal sealed class ManualPhraseForm : Form
     private bool changingCode;
     private bool codeEdited;
     private bool saving;
+    internal bool IsSaving { get { return saving; } }
     private readonly List<string> recentCharacters = new List<string>();
     private int recentCount;
     private bool selectingHistory;
@@ -516,7 +556,7 @@ internal sealed class ManualPhraseForm : Form
         return null;
     }
 
-    private static string Deploy()
+    internal static string Deploy()
     {
         try
         {
@@ -579,5 +619,48 @@ internal sealed class ManualPhraseForm : Form
                 Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
         DialogResult = DialogResult.None;
         Hide();
+    }
+}
+
+
+// Message-only receiver. This is a registered shortcut, not a keyboard hook.
+internal sealed class PhraseDeleteHotkey : NativeWindow, IDisposable
+{
+    private const int HotkeyId = 0x524d;
+    private const int WmHotkey = 0x0312;
+    private readonly Action activate;
+    private bool registered;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool RegisterHotKey(IntPtr window, int id, uint modifiers, uint key);
+    [DllImport("user32.dll")]
+    private static extern bool UnregisterHotKey(IntPtr window, int id);
+
+    internal PhraseDeleteHotkey(Action action)
+    {
+        activate = action;
+        CreateHandle(new CreateParams { Parent = new IntPtr(-3) }); // HWND_MESSAGE
+        const uint modifiers = 0x0002 | 0x0004 | 0x4000; // Ctrl, Shift, MOD_NOREPEAT
+        registered = RegisterHotKey(Handle, HotkeyId, modifiers, 0xbd); // VK_OEM_MINUS
+        if (!registered)
+            ManualPhraseProgram.Log(new System.ComponentModel.Win32Exception(
+                Marshal.GetLastWin32Error(), "Cannot register Ctrl+Shift+minus; Lua fallback remains available."));
+    }
+
+    protected override void WndProc(ref Message message)
+    {
+        if (message.Msg == WmHotkey && message.WParam.ToInt32() == HotkeyId)
+        {
+            try { activate(); }
+            catch (Exception ex) { ManualPhraseProgram.Log(ex); }
+            return;
+        }
+        base.WndProc(ref message);
+    }
+
+    public void Dispose()
+    {
+        if (registered) { UnregisterHotKey(Handle, HotkeyId); registered = false; }
+        DestroyHandle();
     }
 }

@@ -3,7 +3,7 @@
 # Keep manual phrases and learned user dictionaries separate.
 ---
 name: wubi86_extra
-version: "2026.11.17"
+version: "2026.11.17.extra2"
 sort: by_weight
 columns: [text, code, weight]
 ...
@@ -277,3 +277,125 @@ columns: [text, code, weight]
 自动编程	tfxt	100
 人工审核	waps	100
 工作流编排	awir	100
+# 2026-11-17 补充研发/工程常用两字词 46 条
+联调	buym	100
+发版	ntth	100
+蓝绿	ajxv	100
+预发	cbnt	100
+走查	fhsj	100
+卡顿	hhgb	100
+串行	kktf	100
+分库	wvyl	100
+分表	wvge	100
+主从	ygww	100
+缩容	xppw	100
+告警	tfaq	100
+埋点	fjhk	100
+链路	qlkh	100
+压测	dfim	100
+单测	ujim	100
+热修	rvwh	100
+封板	ffsr	100
+适配	tdsg	100
+用例	etwg	100
+全量	wgjg	100
+发单	ntuj	100
+灾备	potl	100
+容灾	pwpo	100
+双活	ccit	100
+合规	wgfw	100
+算力	thlt	100
+鉴权	jtsc	100
+验签	cwtw	100
+加盐	lkfh	100
+脱敏	eutx	100
+弹窗	xupw	100
+重做	tgwd	100
+拖拽	rtrj	100
+长按	tarp	100
+占位	hkwu	100
+链表	qlge	100
+沙箱	iits	100
+句柄	qksg	100
+丢包	tfqn	100
+协程	fltk	100
+中台	khck	100
+大屏	ddnu	100
+拉新	ruus	100
+促活	wkit	100
+跨境	khfu	100
+# 2026-11-17 补充办公/财务常用两字词 42 条
+竞聘	ukbm	100
+周会	mfwf	100
+晨会	jdwf	100
+站会	uhwf	100
+询价	yqww	100
+打款	rsff	100
+工伤	aawt	100
+入职	tybk	100
+背调	uxym	100
+竞业	ukog	100
+调薪	ymau	100
+涨薪	ixau	100
+结项	xfad	100
+调岗	ymmm	100
+驻场	cyfn	100
+用印	etqg	100
+面签	dmtw	100
+网签	mqtw	100
+电签	jntw	100
+税号	tukg	100
+进项	fjad	100
+销项	qiad	100
+普票	uosf	100
+专票	fnsf	100
+补缴	puxr	100
+断缴	onxr	100
+房贷	ynwa	100
+车贷	lgwa	100
+征信	tgwy	100
+首付	utwf	100
+契税	dhtu	100
+等额	tfpt	100
+核保	sywk	100
+定损	pgrk	100
+车险	lgbw	100
+交强	uqxk	100
+三者	dgft	100
+车主	lgyg	100
+剐蹭	kmkh	100
+滤芯	ihan	100
+雨刮	fgtd	100
+重疾	tgut	100
+# 2026-11-17 补充日常/生活常用两字词 31 条
+换货	rqwx	100
+口罩	kklh	100
+牙疼	ahut	100
+民宿	napw	100
+路况	khuk	100
+限号	bvkg	100
+追剧	wnnd	100
+电竞	jnuk	100
+楼道	sout	100
+雾霾	ftfe	100
+插排	rtrd	100
+湿巾	ijmh	100
+被子	pubb	100
+玄关	yxud	100
+门卡	uyhh	100
+猫眼	qthv	100
+工号	aakg	100
+微信	tmwy	100
+京东	yiai	100
+微博	tmfg	100
+知乎	tdtu	100
+滴滴	iuiu	100
+高德	ymtf	100
+华为	wxyl	100
+携程	rwtk	100
+建行	vftf	100
+中行	khtf	100
+招行	rvtf	100
+邮储	mbwy	100
+交行	uqtf	100
+浦发	ignt	100

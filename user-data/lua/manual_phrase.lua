@@ -1,4 +1,4 @@
--- Ctrl+Shift+= submits a request to the already-running editor.
+-- Ctrl+Shift+= adds a phrase; Ctrl+Shift+- opens the manual phrase deletion list.
 -- No process creation, shell command, window activation, or waiting in the IME.
 local M = {}
 local ACCEPTED, NOOP = 1, 2
@@ -29,20 +29,33 @@ end
 
 function M.func(key, env)
   local code = key.keycode
-  local shortcut_key = code == 0x2b or code == 0x3d
+  local shortcut_key = code == 0x2b or code == 0x3d or code == 0x5f or code == 0x2d
   if key:release() then
     if shortcut_key then env.hotkey_down = false end
     return NOOP
   end
   if not key:ctrl() or key:alt() or key:super() then return NOOP end
-  if not (code == 0x2b or (code == 0x3d and key:shift())) then return NOOP end
+  local add = code == 0x2b or (code == 0x3d and key:shift())
+  local remove = code == 0x5f or (code == 0x2d and key:shift())
+  if not add and not remove then return NOOP end
   if env.hotkey_down then return ACCEPTED end
   env.hotkey_down = true
   -- Publish only a complete request. The helper watches the final filename.
   pcall(function()
     local request = io.open(env.pending, 'wb')
     if not request then return end
-    local written = request:write(recent_input(env.engine.context))
+    local text
+    if remove then
+      local ok, selected = pcall(function()
+        local candidate = env.engine.context:get_selected_candidate()
+        return candidate and candidate.text or env.engine.context.input
+      end)
+      text = ok and type(selected) == 'string' and selected or ''
+    else
+      text = recent_input(env.engine.context)
+    end
+    local mode = remove and 'delete' or 'add'
+    local written = request:write('RIME_PHRASE_V1\t' .. mode .. '\n' .. text)
     local closed = request:close()
     if written and closed then
       os.remove(env.request)

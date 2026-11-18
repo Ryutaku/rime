@@ -30,8 +30,10 @@ patch:
     enable_sentence: false
     initial_quality: 10
   translator/enable_user_dict: true
-  translator/enable_encoder: true
-  translator/encode_commit_history: true
+  # 关闭自动造词：不再把上屏过的多字文本自动编码写入用户词典。
+  # 手动造词（Ctrl+Shift+= 造词窗口，保存到 custom_phrase.txt）不受影响。
+  translator/enable_encoder: false
+  translator/encode_commit_history: false
   punctuator/import_preset: symbols
   recognizer/patterns/punct: ^/[A-Za-z]+$
   switches/+:
@@ -46,3 +48,19 @@ patch:
     tips: none
     excluded_types:
     - literal_ascii
+
+  # Arrow keys select candidates in every candidate layout.
+  "selector/bindings/Left": previous_candidate
+  "selector/bindings/Right": next_candidate
+  "selector/linear/bindings/Left": previous_candidate
+  "selector/linear/bindings/Right": next_candidate
+  "selector/vertical/bindings/Left": previous_candidate
+  "selector/vertical/bindings/Right": next_candidate
+  "selector/vertical/linear/bindings/Left": previous_candidate
+  "selector/vertical/linear/bindings/Right": next_candidate
+
+  # Do not synthesize temporary phrases from separate character codes.
+  translator/enable_sentence: false
+  # Explicitly bind both candidate deletion shortcuts for this editor.
+  "editor/bindings/Shift+Delete": delete_candidate
+  "editor/bindings/Control+Delete": delete_candidate

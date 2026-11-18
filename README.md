@@ -33,7 +33,7 @@
 现用文件：
 
 - `user-data/lua/manual_phrase.lua`：Ctrl+Shift+= 提交近期输入请求，不在输入法按键回调里启动进程。
-- `user-data/extensions/manual_phrase/ManualPhrase.Resident.cs` / `.exe`：现用后台和窗体，复用窗口和五笔取码数据。
+- `user-data/extensions/manual_phrase/ManualPhrase.Resident.cs`：现用后台主源码；编译为 `ManualPhrase.Manager.exe`，复用添加/删除窗口和五笔取码数据。删除界面及文件操作见 ManualPhrase.Delete.cs、ManualPhrase.Store.cs。
 - `user-data/extensions/manual_phrase/wubi-single-char.tsv`：从当前五笔词库提取的单字取码缓存。
 - `user-data/extensions/manual_phrase/WeaselWithPhrase.cs`：联动启动器源码，对应 `install-dir/WeaselWithPhrase.exe`。
 - `启动自造词后台.vbs`：只启动造词后台的备用入口。
@@ -78,3 +78,33 @@ Ctrl+Shift+= 后默认取最近两个汉字；↑向前多取一字，↓少取�
 ## 常用词补充（2026-11-17）
 
 新增 wubi86_extra.dict.yaml（269条标准五笔）和 pinyin_simp_extra.dict.yaml（221条拼音），分别由原基础词库的import_tables导入。恢复时要同时复制修改后的基础词库和这两份扩展词库。完整编码及核对说明见reports/补词清单-2026-11-17.tsv和reports/补词说明-2026-11-17.md。仅静态检查，需重新部署后验证。
+
+## 候选方向键（2026-11-17）
+
+混输和纯五笔均补充显式方向键绑定：左键上一候选、右键下一候选，空格确认。横排、竖排布局均设置，Tab及Shift+Tab保留。需重新部署后验证。
+
+
+## 快捷删除自造词（2026-11-17）
+
+现用后台更新为 `ManualPhrase.Manager.exe`。首次升级时先关闭造词窗口，双击用户目录 extensions/manual_phrase/重启造词后台.vbs，再重新部署。脚本仅替换运行中的造词后台；该次配置任务未实际运行此脚本。
+
+- Ctrl+Shift+=：添加自造词。
+- Ctrl+Shift+-：打开手工自造词删除窗口，默认显示全部，可按词语或编码搜索。
+- 输入词语或编码筛选，↓进入列表，↑↓选择，Delete或Enter删除；Esc关闭。
+- 删除和撤销都在修改前备份；异步部署后继续操作；“撤销上次”恢复最近一次删除的词语＋编码，保留期间新增的其他词。
+- 此窗口管理custom_phrase.txt，基础/扩展词库和自动学词仍可能提供同词候选。
+- 原ManualPhrase.Resident.exe保留为旧版回退。登录脚本和联动启动器已改用新程序。
+- tests/ManualPhrase.Store.Tests.cs：13项文件删除和撤销检查，使用独立临时目录，无输入法或界面操作。
+
+重新编译执行tools/build.ps1，现用后台包含Resident、Delete、Store三份源码。原README前文的后台运行机制保持一致。
+
+
+## 删除窗口从其他应用唤出时的焦点（2026-11-17）
+
+Ctrl+Shift+-改由后台RegisterHotKey/WM_HOTKEY接收，在快捷键处理内立即取得前台激活。删除窗口移除了750毫秒临时置顶逻辑，并在实际激活后聚焦搜索框；同一快捷键产生的重复Lua请求在一秒内忽略。全局快捷键入口默认显示全部手工词组，支持编码或词语搜索，中英文状态下均可使用。输入法Lua入口保留作为注册失败时的后备。
+
+此方案不连接其他应用输入队列、不模拟按键。Windows快捷键激活权限依据：https://devblogs.microsoft.com/oldnewthing/20090226-00/?p=19013 。仅编译检查和后台启动检查，实际跨应用输入场景仍由使用者验证。
+
+## 候选删除和自动组句（2026-11-17）
+
+混输和纯五笔均显式绑定Shift+Delete和Control+Delete到delete_candidate，并关闭主translator/enable_sentence，避免继续临时拼出不存在于固定词库的组合。已有用户词库调频保留。详细依据、限制及待验证项见reports/删除候选与自动组句-2026-11-17.md。需重新部署后验证。

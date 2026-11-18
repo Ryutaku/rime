@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Win32;
@@ -21,7 +21,7 @@ internal static class WeaselWithPhrase
             }
             if (String.IsNullOrEmpty(root))
                 root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Rime");
-            Start(Path.Combine(root, "extensions", "manual_phrase", "ManualPhrase.Resident.exe"));
+            Start(Path.Combine(root, "extensions", "manual_phrase", "ManualPhrase.Manager.exe"));
         }
         catch (Exception ex) { Log(ex); }
         try { if (!WeaselRunning()) Start(Path.Combine(install, "WeaselServer.exe")); }
