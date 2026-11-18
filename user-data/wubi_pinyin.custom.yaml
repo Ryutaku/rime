@@ -35,6 +35,15 @@ patch:
   translator/enable_encoder: false
   translator/encode_commit_history: false
   punctuator/import_preset: symbols
+  # 上一个上屏的是数字时，这些标点按半角原样上屏：3.14、10:30、192.168.1.1:8080。
+  # 改成 "" 就恢复「数字后按 . : 得全角」。
+  number_input/ascii_punct_after_digit: ".:"
+  # 上一个上屏的是英文字母时，这些标点按半角原样上屏：github.com、name: value。
+  number_input/ascii_punct_after_letter: ".:"
+  # 这些程序（进程名小写，多个用 ; 分隔）里锁死英文：每次按键都掰回英文模式，
+  # 按 Ctrl 切中文无效。Xshell 自己会把输入法改回中文，小狼毫的 app_options 只在建会话时套一次，
+  # 所以用这里兜底。要在这些程序里打中文，把名单清空（改成 ""）再重新部署。
+  number_input/ascii_lock_apps: "xshell.exe"
   recognizer/patterns/punct: ^/[A-Za-z]+$
   switches/+:
   - name: always_simplified

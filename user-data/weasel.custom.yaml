@@ -22,6 +22,10 @@ patch:
   "style/inline_preedit": true
   "style/layout/border": 0
   "style/layout/candidate_spacing": 8
+  # 候选窗宽度按内容收缩：横排布局会把每行最右的候选拉到窗口宽度，
+  # 窗口宽度取 max(内容宽度, min_width)，min_width 设 0 后高亮背景就跟着词长走。
+  # 嫌打字时窗口宽度抖动就改成 80 之类的值。
+  "style/layout/min_width": 0
   "style/layout/hilite_padding_y": 4
   "style/layout/hilited_corner_radius": 6
   "style/layout/type": horizontal

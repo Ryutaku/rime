@@ -1,6 +1,9 @@
 -- Digits and all printable ASCII punctuation after a letter code are literal input.
--- Alt+semicolon starts one temporary ASCII token.
+-- Semicolon starts one temporary ASCII token; Alt+semicolon does the same.
 -- Confirm a literal token with Space or Enter; Escape cancels it.
+-- A punctuation key typed right after a committed digit or letter is read
+-- literally, so 3 . 1 4 gives 3.14 and 10 : 30 gives 10:30.
+-- Programs listed in number_input/ascii_lock_apps are kept in ASCII mode.
 local M = {}
 local ACCEPTED, NOOP = 1, 2
 local RETURN, KP_ENTER, BACKSPACE, SPACE = 0xff0d, 0xff8d, 0xff08, 0x20
@@ -17,6 +20,11 @@ local shifted = {
   [0x3b] = ':', [0x27] = '"',
   [0x2c] = '<', [0x2e] = '>', [0x2f] = '?',
 }
+
+-- Last character committed by this processor, "" after any other key. A
+-- punctuation key after a digit or a letter is read literally, while 汉字 before
+-- it still gives 中文标点.
+local last_char = ''
 
 local function printable(key)
   local code = key.keycode
@@ -71,16 +79,75 @@ local function initial_punctuation(char, key, env)
   return value and value.value or char
 end
 
+-- Reads a string from the schema config; nil when the key is missing or the
+-- value is not a string, so a config problem never breaks a key press.
+local function config_string(env, key_name)
+  local config = env.engine.schema.config
+  if not config then return nil end
+  local value = config:get_string(key_name)
+  return type(value) == 'string' and value or nil
+end
+
+-- A punctuation key typed right after a digit or a letter is read literally:
+-- 3.14, 192.168.1.1:8080, 10:30, name: value. Which keys count is listed in
+-- number_input/ascii_punct_after_digit and .../ascii_punct_after_letter; an
+-- empty value turns that case off.
+local function literal_punct(char, key, env)
+  if not (char and last_char ~= '') then return false end
+  local key_name
+  if last_char:match('^[0-9]$') then
+    key_name = 'number_input/ascii_punct_after_digit'
+  elseif last_char:match('^[A-Za-z]$') then
+    key_name = 'number_input/ascii_punct_after_letter'
+  else
+    return false
+  end
+  local chars = config_string(env, key_name)
+  if not (chars and chars:find(char, 1, true)) then return false end
+  local code = key.keycode
+  -- Keypad decimal reports its own keysym; full shape keeps full-width marks.
+  if code > 0x7e and code ~= 0xffae then return false end
+  return not env.engine.context:get_option('full_shape')
+end
+
+-- Weasel applies app_options once, when the app's input session is created, and
+-- Xshell sets the IME state back to Chinese by itself. Every key checks the
+-- programs listed in number_input/ascii_lock_apps and switches them back to
+-- ASCII; pending codes are committed as raw text so no keystroke is lost.
+local function lock_ascii(env)
+  local apps = config_string(env, 'number_input/ascii_lock_apps')
+  if not apps or apps == '' then return end
+  local ctx = env.engine.context
+  if not ctx.get_property then return end
+  local app = ctx:get_property('client_app')
+  if type(app) ~= 'string' or app == '' then return end
+  for entry in apps:gmatch('[^;]+') do
+    if entry:match('^%s*(.-)%s*$'):lower() == app then
+      if not ctx:get_option('ascii_mode') then
+        if ctx.input ~= '' then env.engine:commit_text(ctx.input) end
+        ctx:clear()
+        if ctx.set_option then ctx:set_option('ascii_mode', true) end
+      end
+      return
+    end
+  end
+end
+
 function M.processor(key, env)
+  lock_ascii(env)
   if key:release() or key:ctrl() or key:super() then return NOOP end
   local ctx = env.engine.context
-  if ctx:get_option('ascii_mode') then return NOOP end
+  if ctx:get_option('ascii_mode') then
+    last_char = ''
+    return NOOP
+  end
   local code, input = key.keycode, ctx.input
   local char = printable(key)
   if key:alt() then
     if input == '' and not key:shift() and (char == ';' or code == 0x2f
         or (char == '`' and env.engine.schema.config:get_string('reverse_lookup/prefix') == char)) then
       ctx:push_input(char)
+      last_char = ''
       return ACCEPTED
     end
     return NOOP
@@ -92,16 +159,21 @@ function M.processor(key, env)
       if temporary_ascii and text == '' then text = '；' end
       env.engine:commit_text(text)
       ctx:clear()
+      last_char = text:sub(-1)
       return ACCEPTED
     end
     if code == BACKSPACE then
       ctx:pop_input(1)
+      last_char = ctx.input:sub(-1)
       return ACCEPTED
     end
     if char then
       ctx:push_input(char)
+      last_char = char
       return ACCEPTED
     end
+    -- Arrow keys, Tab or Escape in a literal segment: forget the tail character.
+    last_char = ''
     return NOOP
   end
   local digit = char and char:match('^[0-9]$')
@@ -109,15 +181,31 @@ function M.processor(key, env)
   if digit or symbol then
     if input:match('^[A-Za-z]') then
       ctx:push_input(char)
+      last_char = char
+      return ACCEPTED
+    end
+    -- Plain ";" starts one temporary ASCII token. ";" alone, confirmed with
+    -- Space or Enter, still commits the full-width 分号.
+    if char == ';' and input == '' then
+      ctx:push_input(';')
       return ACCEPTED
     end
     if input == '' then
-      local text = digit or initial_punctuation(char, key, env)
+      local text = digit
+      if not text and literal_punct(char, key, env) then text = char end
+      if not text then text = initial_punctuation(char, key, env) end
       if text then
         env.engine:commit_text(text)
+        last_char = text:sub(-1)
         return ACCEPTED
       end
     end
+  end
+  -- Any other real key (letters, Space, Escape) starts a new context. A modifier
+  -- press must not: ":" is typed as Shift then ";", and the remembered digit has
+  -- to survive that Shift, so keys held with a modifier keep the state.
+  if not (key:shift() or key:alt() or key:ctrl() or key:super()) then
+    last_char = ''
   end
   return NOOP
 end
