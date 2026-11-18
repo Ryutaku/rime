@@ -1,110 +1,54 @@
-﻿# 小狼毫个人定制存档
+# 小狼毫五笔拼音混输
 
-日期：2026-11-17。此目录是配置和外挂程序的副本；当前输入法仍使用原 AppData 配置目录。
+这是我在 Windows 上用的小狼毫配置。平时以五笔 86 为主，遇到不会拆的字就直接打拼音。写代码、型号或网址时，夹在中文里的字母、数字和标点也可以原样输入。仓库里还带了一个自造词后台，方便用快捷键添词、删词。
 
-## 目录
+## 安装
 
-- `user-data/`：可恢复的用户配置、五笔/拼音方案和词库、Lua、手工自造词及外挂程序。
-- `install-dir/WeaselWithPhrase.exe`：放在小狼毫安装目录里的联动启动器。
-- `startup/`：用户登录启动脚本和开始菜单联动快捷方式的原样副本。
-- `machine-state/`：原机器的安装信息、上次方案状态及启动入口记录，供核对。
-- `history/backups/`：今天修改前保存的各阶段备份，以及造词文件备份。
-- `history/authoring-tools/`：今天的安装、修改脚本和早期验证资料，仅供历史参考。
-- `tools/build.ps1`：重新编译现用造词后台和联动启动器。
-- `snapshot.json`：原始文件的来源、大小和复制时 SHA-256。
-- `SHA256SUMS.txt`：整个存档的文件校验清单。
+1. 先安装支持 Lua 和 OpenCC 的小狼毫。这套配置以小狼毫 0.17.4 为基准。[小狼毫 0.17.4 下载](https://github.com/rime/weasel/releases/tag/0.17.4)
+2. 从开始菜单打开「【小狼毫】用户文件夹」，备份整个目录。默认是 `%APPDATA%\Rime`，改过位置的话，以菜单打开的目录为准。升级前，如果旧的自造词后台还在运行，先在任务管理器结束它。
+3. 把 `user-data/` **里面的文件和目录**复制进去。已有自己的 `custom_phrase.txt` 时，先留下原文件，再按需合并仓库里的词条。已有其他自定义设置，也可以从备份中合并回来。
+4. 从开始菜单运行「【小狼毫】重新部署」。部署完成后，默认使用「五笔拼音混输·数字直输」方案。
 
-## 最终配置
+如需把纯五笔也放进方案菜单，在 `default.custom.yaml` 的 `patch` 下找到 `schema_list`，另起一行加上 `- {schema: wubi86}`，和已有的方案对齐，再重新部署。纯五笔里可以先打 `z` 再用拼音找字。
 
-1. 默认方案为五笔86＋拼音混输；也保留纯五笔方案文件，但当前方案菜单仅列混输。
-2. 数字键和小键盘数字作为原文，不选择候选；隐藏候选数字序号。
-3. 字母编码后输入任意英文标点，整段进入原文输入。覆盖全部32个ASCII标点，包括未按Shift的逗号、句号、分号、引号、斜杠、等号及全部Shift符号。
-4. 原文段按空格或回车确认，退格编辑，Esc取消。分号、单引号在编码后也按原文处理。中文后接数字或标点时，先空格确认中文。
-5. 输入开头的 `;` 开始临时英文；确认时不输出开头的分号。空分号段确认输出中文分号。
-6. 左、右Shift不切换中英文；左、右Ctrl切换，存在编码时先确认原始编码（commit_code）。
-7. 五笔启用用户词库学习和自动造词；拼音仍为原方案的反查译码器，不具备完整拼音译码器同等的动态调频能力。
-8. 中文候选统一转为简体并去重；隐藏预编辑区的 U+2038 `‸` 软光标。
-9. `/fh` 常用符号，`/sx` 数学符号，`/jt` 箭头，`/dw` 单位，`/xl` 希腊字母，`/xld` 大写希腊字母，`/fs` 分数。
-10. 外观保留现用 cool_breeze 配色、横排、行内编码和隐藏托盘图标等配置，以 weasel.custom.yaml 为准。
-11. Windows Terminal、CMD、PowerShell、Git Bash/mintty、Xshell默认英文；应用间不共享全局中英文状态。属于应用默认值，不保证每次切回都强制重置。
+### 启用自造词快捷键
 
-## 手工造词外挂
+基本输入配好后，在**小狼毫用户文件夹**里运行 `extensions\manual_phrase\ManualPhrase.Manager.exe`。它会在后台等候快捷键，启动时不会弹出窗口。
 
-现用文件：
+- 想在登录 Windows 时自动启动后台，把 [RimeManualPhrase.vbs](startup/user-login/RimeManualPhrase.vbs) 复制到 `Win+R` 打开 `shell:startup` 后看到的目录。脚本会读取小狼毫当前配置的用户目录。
+- 想用一个快捷方式启动小狼毫和造词后台，把 [WeaselWithPhrase.exe](install-dir/WeaselWithPhrase.exe) 放到小狼毫安装目录，与 `WeaselServer.exe` 放在一起，再给它创建快捷方式。
+- 更新文件后想单独重启造词后台，双击用户文件夹里的 `extensions\manual_phrase\重启造词后台.vbs`。
 
-- `user-data/lua/manual_phrase.lua`：Ctrl+Shift+= 提交近期输入请求，不在输入法按键回调里启动进程。
-- `user-data/extensions/manual_phrase/ManualPhrase.Resident.cs`：现用后台主源码；编译为 `ManualPhrase.Manager.exe`，复用添加/删除窗口和五笔取码数据。删除界面及文件操作见 ManualPhrase.Delete.cs、ManualPhrase.Store.cs。
-- `user-data/extensions/manual_phrase/wubi-single-char.tsv`：从当前五笔词库提取的单字取码缓存。
-- `user-data/extensions/manual_phrase/WeaselWithPhrase.cs`：联动启动器源码，对应 `install-dir/WeaselWithPhrase.exe`。
-- `启动自造词后台.vbs`：只启动造词后台的备用入口。
+## 平时怎么用
 
-Ctrl+Shift+= 后默认取最近两个汉字；↑向前多取一字，↓少取一字；Enter保存，Esc取消。手动编辑词语或编码也可。保存到 custom_phrase.txt，先备份，再异步部署。
+| 想做什么 | 怎么按 |
+| --- | --- |
+| 按五笔或拼音输入中文 | 直接输入五笔 86 编码或全拼。比如 `wq` 后按空格上屏「你」，`nihao` 后按空格上屏「你好」。 |
+| 选词、翻页 | 用 `←`、`→` 或 `Shift+Tab`、`Tab` 切换候选，空格上屏。用 `Page Up`、`Page Down` 翻页。主键盘和小键盘的数字都用来输入。 |
+| 输入字母、数字和英文标点 | 字母编码后输入数字或英文标点，整段就会按原文处理。比如 `abc123` 或 `abc-def`，按空格或回车原样上屏。退格可以修改，`Esc` 取消。 |
+| 临时输入纯英文 | 打 `;hello` 再按空格或回车，得到 `hello`，下一段可以接着输入中文。只输入分号再确认会得到「；」。 |
+| 切换中英文 | 轻按左或右 `Ctrl`。如果还有未上屏的编码，会先按原样送出。左右 `Shift` 都可照常用于输入大写字母和符号。 |
+| 输入特殊符号 | 在新的一段开头输入 `/fh`（常用符号）、`/sx`（数学符号）、`/jt`（箭头）、`/dw`（单位）、`/xl` 或 `/xld`（希腊字母）、`/fs`（分数）。 |
 
-关闭窗口只是隐藏后台。常驻程序与窗口在第一次启动时初始化，后续复用；等待快捷键松开后恢复窗口并短暂置前。Windows可能限制自动获取焦点。
+中文后面要接数字或标点时，先按空格让中文上屏。比如输入 `wq`、空格、`123`、空格，会得到「你123」。如果直接输入 `wq123`，这一整段会按原样上屏。
 
-旧版 ManualPhrase.exe、ManualPhrase.History.exe 及 ManualPhrase.cs 按原样保存，用于历史回退。现用启动链不调用它们。
+候选横排显示，中文候选会转成简体并去重。Windows Terminal、CMD、PowerShell、Git Bash 的 mintty 和 Xshell 默认使用英文，各应用分别记录中英文状态。
 
-## 原机器启动方式
+## 添加和删除词条
 
-原用户目录：`C:\Users\Administrator\AppData\Roaming\Rime`
+**加自造词。** 输完要加的词，在小狼毫里按 `Ctrl+Shift+=`。窗口默认取最近两个汉字，`↑` 向前多取一个字，`↓` 少取一个字。词语和建议的五笔编码都可以改，按回车保存，按 `Esc` 关闭。
 
-原安装目录：`D:\Programs\Rime\weasel-0.17.4`
+**删自造词。** 按 `Ctrl+Shift+-` 打开删词窗口，输入词语或编码筛选。按 `↓` 进入列表，选中后按 `Delete` 或回车。手滑删错了，可以点「撤销上次」。加词、删词和撤销都会在修改前备份已有的 `custom_phrase.txt`，然后尝试重新部署。
 
-- 系统 HKLM Run 的 WeaselServer 仍直接指向原 WeaselServer.exe；该键因写权限限制未修改。
-- 用户启动目录的 RimeManualPhrase.vbs 登录时启动造词后台。
-- 当前用户开始菜单的“小狼毫算法服务”指向 WeaselWithPhrase.exe，联动启动造词后台和小狼毫；系统公共开始菜单的原始入口保留。
-- 直接运行原始 WeaselServer.exe 不经过联动入口。
+**删用户词库里的候选。** 先选中候选，再按 `Shift+Delete` 或 `Ctrl+Delete`。这两个快捷键针对用户词库，手工加的词用上面的删词窗口处理。如果基础词库或扩展词库里也收录了这个词，删掉手工记录后它仍可能出现。
 
-## 恢复到这台机器
+五笔会继续按使用情况调整词频。自动造词和临时组句已关闭，想固定一个新词时，用加词窗口保存即可。
 
-1. 备份现有Rime用户目录；关闭造词后台后再替换其可执行文件。
-2. 将 `user-data/` 内的内容复制到上面的Rime用户目录，保留原有其他文件。
-3. 将 `install-dir/WeaselWithPhrase.exe` 复制到上面的小狼毫安装目录，与 WeaselServer.exe 相邻。
-4. 将 `startup/user-login/RimeManualPhrase.vbs` 放回当前用户的“启动”目录；将 `startup/user-start-menu/小狼毫算法服务.lnk` 放回当前用户开始菜单的“小狼毫输入法”目录。
-5. 从开始菜单启动联动入口，然后重新部署小狼毫，验证输入。
+## 备份和维护
 
-不同电脑、用户名或安装路径：先安装小狼毫和其内置Lua/OpenCC支持，再调整VBS、快捷方式中的绝对路径。联动启动器读取当前用户注册表的RimeUserDir；无此值时使用当前用户AppData\Roaming\Rime。联动启动器应放在目标WeaselServer.exe旁边。
+- 手工词保存在 `custom_phrase.txt` 中，每行依次是词语、编码和权重，用 Tab 分隔。造词后台的备份在用户文件夹的 `backups\manual_phrase\` 里。
+- 动态词频和已学词条保存在小狼毫本机的用户词库中。换电脑时，可以先在小狼毫的「用户词典管理」里导出，再到新电脑导入。
+- 通用补词写在 `user-data/` 里的 `wubi86_extra.dict.yaml` 和 `pinyin_simp_extra.dict.yaml`，两份扩展分别由对应的基础词库加载。修改词库或配置后，需要重新部署。
+- 造词快捷键没反应时，先确认后台已运行、配置已重新部署。后台报错时，可以在用户文件夹的 `extensions\manual_phrase\resident-error.log` 查看原因。
 
-不要直接把 machine-state/installation.yaml 或 user.yaml 覆盖到其他机器，它们是原机器状态。不要从存档目录直接运行造词后台作为正式安装：它以自身目录定位custom_phrase.txt，而部署程序仍针对注册的用户目录。
-
-## 备份范围和验证状态
-
-已保存 custom_phrase.txt 中的现有自造词，以及全部现用Lua、配置、词库和外挂源码/可执行文件。运行期间的request文件、错误日志、可重新生成的build目录没有打包。
-
-正在使用的 wubi86.userdb、stroke.userdb 数据库未直接复制，避免活动数据库快照不一致。需要保留动态调频学习结果时，请另用小狼毫用户词典管理导出快照，或退出输入法后备份数据库。
-
-本次存档仅复制文件、记录启动状态并校验文件哈希。没有重启、部署或测试输入法。history中的验证结果属于早期版本，不能作为最终配置的验证结果。
-
-## 常用词补充（2026-11-17）
-
-新增 wubi86_extra.dict.yaml（269条标准五笔）和 pinyin_simp_extra.dict.yaml（221条拼音），分别由原基础词库的import_tables导入。恢复时要同时复制修改后的基础词库和这两份扩展词库。完整编码及核对说明见reports/补词清单-2026-11-17.tsv和reports/补词说明-2026-11-17.md。仅静态检查，需重新部署后验证。
-
-## 候选方向键（2026-11-17）
-
-混输和纯五笔均补充显式方向键绑定：左键上一候选、右键下一候选，空格确认。横排、竖排布局均设置，Tab及Shift+Tab保留。需重新部署后验证。
-
-
-## 快捷删除自造词（2026-11-17）
-
-现用后台更新为 `ManualPhrase.Manager.exe`。首次升级时先关闭造词窗口，双击用户目录 extensions/manual_phrase/重启造词后台.vbs，再重新部署。脚本仅替换运行中的造词后台；该次配置任务未实际运行此脚本。
-
-- Ctrl+Shift+=：添加自造词。
-- Ctrl+Shift+-：打开手工自造词删除窗口，默认显示全部，可按词语或编码搜索。
-- 输入词语或编码筛选，↓进入列表，↑↓选择，Delete或Enter删除；Esc关闭。
-- 删除和撤销都在修改前备份；异步部署后继续操作；“撤销上次”恢复最近一次删除的词语＋编码，保留期间新增的其他词。
-- 此窗口管理custom_phrase.txt，基础/扩展词库和自动学词仍可能提供同词候选。
-- 原ManualPhrase.Resident.exe保留为旧版回退。登录脚本和联动启动器已改用新程序。
-- tests/ManualPhrase.Store.Tests.cs：13项文件删除和撤销检查，使用独立临时目录，无输入法或界面操作。
-
-重新编译执行tools/build.ps1，现用后台包含Resident、Delete、Store三份源码。原README前文的后台运行机制保持一致。
-
-
-## 删除窗口从其他应用唤出时的焦点（2026-11-17）
-
-Ctrl+Shift+-改由后台RegisterHotKey/WM_HOTKEY接收，在快捷键处理内立即取得前台激活。删除窗口移除了750毫秒临时置顶逻辑，并在实际激活后聚焦搜索框；同一快捷键产生的重复Lua请求在一秒内忽略。全局快捷键入口默认显示全部手工词组，支持编码或词语搜索，中英文状态下均可使用。输入法Lua入口保留作为注册失败时的后备。
-
-此方案不连接其他应用输入队列、不模拟按键。Windows快捷键激活权限依据：https://devblogs.microsoft.com/oldnewthing/20090226-00/?p=19013 。仅编译检查和后台启动检查，实际跨应用输入场景仍由使用者验证。
-
-## 候选删除和自动组句（2026-11-17）
-
-混输和纯五笔均显式绑定Shift+Delete和Control+Delete到delete_candidate，并关闭主translator/enable_sentence，避免继续临时拼出不存在于固定词库的组合。已有用户词库调频保留。详细依据、限制及待验证项见reports/删除候选与自动组句-2026-11-17.md。需重新部署后验证。
+仓库带有编译好的后台和联动启动器。改过 C# 源码后，可以从仓库根目录执行 `.\tools\build.ps1`，用 Windows 的 .NET Framework C# 编译器重新生成这两个程序。脚本只在仓库里生成文件，编译后按上面的步骤更新到对应目录即可。

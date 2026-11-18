@@ -1,5 +1,7 @@
 # Local input-method runtime files
 /user-data/build/
+/user-data/backups/
 /user-data/*.userdb/
+/user-data/.manual_phrase-*.tmp
 /user-data/extensions/manual_phrase/request.*
 /user-data/extensions/manual_phrase/*error.log
