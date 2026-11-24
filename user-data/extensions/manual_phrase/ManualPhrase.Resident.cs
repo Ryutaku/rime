@@ -108,6 +108,8 @@ internal sealed class PhraseApplicationContext : ApplicationContext
         // WM_HOTKEY grants foreground activation rights. Activate here, before
         // deferring work or waiting for modifier release can lose those rights.
         lastDeleteHotkey = DateTime.UtcNow;
+        // No Lua request behind this one, so there is no app state to restore.
+        ManualPhraseStore.OriginApp = null;
         if (form.IsSaving) { form.OpenRequest(""); return; }
         form.Hide();
         // A stale pending Lua request must not replace a just-opened search.
@@ -142,26 +144,52 @@ internal sealed class PhraseApplicationContext : ApplicationContext
             {
                 string history = pending;
                 pending = null;
-                const string deletePrefix = "RIME_PHRASE_V1\tdelete\n";
-                const string addPrefix = "RIME_PHRASE_V1\tadd\n";
-                if (history.StartsWith(deletePrefix, StringComparison.Ordinal))
+                string mode = RequestMode(history);
+                string payload = RequestPayload(history);
+                if (mode == "delete")
                 {
                     // Some frontends also deliver the key to Rime. Ignore that
                     // duplicate so it cannot clear a search already being typed.
                     if (DateTime.UtcNow - lastDeleteHotkey < TimeSpan.FromSeconds(1)) return;
                     form.Hide();
-                    deleteForm.OpenRequest(history.Substring(deletePrefix.Length));
+                    deleteForm.OpenRequest(payload);
                 }
                 else
                 {
                     deleteForm.Hide();
-                    form.OpenRequest(history.StartsWith(addPrefix, StringComparison.Ordinal) ?
-                        history.Substring(addPrefix.Length) : history);
+                    form.OpenRequest(mode == "add" ? payload : history);
                 }
             }
         }
         catch (IOException) { Interlocked.Exchange(ref requestAvailable, 1); }
         catch (Exception ex) { ManualPhraseProgram.Log(ex); }
+    }
+
+    // Header: RIME_PHRASE_V1 <TAB> mode <TAB> app <TAB> ascii_mode. A request
+    // without the two extra fields leaves the origin empty, so nothing is
+    // restored. The mode is returned and the origin is remembered for the
+    // deployment that follows.
+    private static string RequestMode(string history)
+    {
+        ManualPhraseStore.OriginApp = null;
+        ManualPhraseStore.OriginAscii = false;
+        string[] fields = RequestHeader(history);
+        if (fields.Length < 2 || fields[0] != "RIME_PHRASE_V1") return null;
+        if (fields.Length > 2 && fields[2].Length > 0) ManualPhraseStore.OriginApp = fields[2];
+        ManualPhraseStore.OriginAscii = fields.Length > 3 && fields[3] == "1";
+        return fields[1];
+    }
+
+    private static string[] RequestHeader(string history)
+    {
+        int line = history.IndexOf('\n');
+        return (line < 0 ? history : history.Substring(0, line)).Split('\t');
+    }
+
+    private static string RequestPayload(string history)
+    {
+        int line = history.IndexOf('\n');
+        return line < 0 ? "" : history.Substring(line + 1);
     }
 
     protected override void Dispose(bool disposing)
@@ -614,6 +642,13 @@ internal sealed class ManualPhraseForm : Form
         try { deploymentMessage = await Task.Run(() => Deploy()); }
         catch (Exception ex) { deploymentMessage = "请手动重新部署。\n" + ex.Message; }
         saving = false;
+        // The deployment rebuilt every session. Ask for the state this request
+        // came from, so the app does not stay in English after saving.
+        if (deploymentMessage.Length == 0)
+        {
+            try { ManualPhraseStore.WriteStateRestore(root); }
+            catch (Exception ex) { ManualPhraseProgram.Log(ex); }
+        }
         if (deploymentMessage.Length > 0)
             MessageBox.Show(this, "词条已保存。\n" + deploymentMessage,
                 Text, MessageBoxButtons.OK, MessageBoxIcon.Information);

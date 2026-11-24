@@ -13,6 +13,29 @@ internal sealed class ManualPhraseEntry
 // File operations are independent of the UI and never access Rime's active DB.
 internal static class ManualPhraseStore
 {
+    // The app and the Chinese/English state the last request came from. A
+    // redeployment rebuilds every input session and terminal apps come back in
+    // English, so this is handed to the restore request the Lua side reads.
+    internal static string OriginApp;
+    internal static bool OriginAscii;
+
+    // One request per deployment; consumed and removed by number_input.lua.
+    internal static void WriteStateRestore(string root)
+    {
+        string app = OriginApp;
+        OriginApp = null;
+        if (String.IsNullOrEmpty(app)) return;
+        string directory = Path.Combine(root, "extensions", "manual_phrase");
+        string ready = Path.Combine(directory, "restore-ascii.ready");
+        string pending = Path.Combine(directory, "restore-ascii.pending");
+        long stamp = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
+        string body = "RIME_RESTORE_V1\t" + app + "\t" + (OriginAscii ? "1" : "0") + "\t" + stamp;
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(pending, body, new UTF8Encoding(false));
+        if (File.Exists(ready)) File.Delete(ready);
+        File.Move(pending, ready);
+    }
+
     internal static ManualPhraseEntry Parse(string line)
     {
         if (String.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("#")) return null;

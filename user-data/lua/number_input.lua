@@ -4,6 +4,8 @@
 -- A punctuation key typed right after a committed digit or letter is read
 -- literally, so 3 . 1 4 gives 3.14 and 10 : 30 gives 10:30.
 -- Programs listed in number_input/ascii_lock_apps are kept in ASCII mode.
+-- After the phrase manager redeploys, the first key in that program restores the
+-- Chinese/English state that was in use before saving.
 local M = {}
 local ACCEPTED, NOOP = 1, 2
 local RETURN, KP_ENTER, BACKSPACE, SPACE = 0xff0d, 0xff8d, 0xff08, 0x20
@@ -114,12 +116,29 @@ end
 -- Xshell sets the IME state back to Chinese by itself. Every key checks the
 -- programs listed in number_input/ascii_lock_apps and switches them back to
 -- ASCII; pending codes are committed as raw text so no keystroke is lost.
+-- DIAG(临时): 定位「Xshell 里没锁成英文」。日志写到
+-- %TEMP%\rime-lock-diag.log，最多 300 行；定位完删掉这一函数和下面的调用。
+local diag_path = 'C:/Users/Administrator/AppData/Local/Temp/rime-lock-diag.log'
+local diag_lines = 0
+local function diag(msg)
+  if diag_lines >= 300 then return end
+  diag_lines = diag_lines + 1
+  local ok = pcall(function()
+    local file = io.open(diag_path, 'a')
+    if file then file:write(msg, '\n'); file:close() end
+  end)
+  if not ok then print('[lock_ascii] ' .. msg) end
+end
+
 local function lock_ascii(env)
   local apps = config_string(env, 'number_input/ascii_lock_apps')
-  if not apps or apps == '' then return end
   local ctx = env.engine.context
+  local app = ctx.get_property and ctx:get_property('client_app')
+  diag(string.format('has_get_property=%s apps=%s app=%s type=%s ascii=%s',
+    tostring(ctx.get_property ~= nil), tostring(apps), tostring(app),
+    type(app), tostring(ctx:get_option('ascii_mode'))))
+  if not apps or apps == '' then return end
   if not ctx.get_property then return end
-  local app = ctx:get_property('client_app')
   if type(app) ~= 'string' or app == '' then return end
   for entry in apps:gmatch('[^;]+') do
     if entry:match('^%s*(.-)%s*$'):lower() == app then
@@ -127,14 +146,68 @@ local function lock_ascii(env)
         if ctx.input ~= '' then env.engine:commit_text(ctx.input) end
         ctx:clear()
         if ctx.set_option then ctx:set_option('ascii_mode', true) end
+        diag('locked ascii_mode=true for ' .. app)
       end
       return
     end
   end
 end
 
+-- True for the programs listed in number_input/ascii_lock_apps, which stay in
+-- English on purpose.
+local function is_locked(env, app)
+  local apps = config_string(env, 'number_input/ascii_lock_apps')
+  if not apps or apps == '' then return false end
+  for entry in apps:gmatch('[^;]+') do
+    if entry:match('^%s*(.-)%s*$'):lower() == app then return true end
+  end
+  return false
+end
+
+-- Saving or deleting a phrase redeploys, and the rebuilt session re-applies the
+-- app_options that put terminals in English. The phrase manager writes one
+-- request naming the program and the Chinese/English state it found there; the
+-- first key in that program's new session puts the state back. Requests older
+-- than two minutes, and requests for a locked program, are dropped.
+local function restore_state(env)
+  if env.restore_done then return end
+  env.restore_done = true
+  pcall(function()
+    local ctx = env.engine.context
+    if not ctx.get_property then return end
+    local app = ctx:get_property('client_app')
+    if type(app) ~= 'string' or app == '' then return end
+    app = app:lower()
+    local path = rime_api.get_user_data_dir()
+        .. '/extensions/manual_phrase/restore-ascii.ready'
+    local file = io.open(path, 'rb')
+    if not file then return end
+    local body = file:read('*a')
+    file:close()
+    local fields = {}
+    for field in (body .. '\t'):gmatch('([^\t]*)\t') do fields[#fields + 1] = field end
+    if fields[1] ~= 'RIME_RESTORE_V1' then os.remove(path) return end
+    local stamp = tonumber(fields[4])
+    if not stamp or os.time() - stamp > 120 then os.remove(path) return end
+    if type(fields[2]) ~= 'string' then os.remove(path) return end
+    -- Keep a request that belongs to another program for its own session.
+    if fields[2]:lower() ~= app then return end
+    os.remove(path)
+    if is_locked(env, app) then return end
+    local target = fields[3] == '1'
+    if ctx.set_option and ctx:get_option('ascii_mode') ~= target then
+      ctx:set_option('ascii_mode', target)
+    end
+  end)
+end
+
+function M.init(env)
+  env.restore_done = false
+end
+
 function M.processor(key, env)
   lock_ascii(env)
+  restore_state(env)
   if key:release() or key:ctrl() or key:super() then return NOOP end
   local ctx = env.engine.context
   if ctx:get_option('ascii_mode') then

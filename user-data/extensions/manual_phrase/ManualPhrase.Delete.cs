@@ -187,6 +187,13 @@ internal sealed class ManualPhraseDeleteForm : Form
         try { note = await Task.Run(() => ManualPhraseForm.Deploy()); }
         catch (Exception ex) { note = "请手动重新部署：" + ex.Message; }
         busy = false;
+        // Only the deployment that came from a shortcut request has an app state
+        // to put back; WriteStateRestore clears it, so later deploys do nothing.
+        if (note.Length == 0)
+        {
+            try { ManualPhraseStore.WriteStateRestore(root); }
+            catch (Exception ex) { ManualPhraseProgram.Log(ex); }
+        }
         search.Enabled = entries.Enabled = close.Enabled = true;
         RefreshEntries();
         status.Text = result + (note.Length == 0 ? "，已部署。可继续删词或撤销上次。" : "。" + note);

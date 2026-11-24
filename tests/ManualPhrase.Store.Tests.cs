@@ -36,6 +36,26 @@ internal static class ManualPhraseStoreTests
         Check(ManualPhraseStore.Restore(root, selected), "undo should restore the deleted pair");
         Check(!ManualPhraseStore.Restore(root, selected), "undo must be idempotent");
         Check(File.ReadAllText(file, Encoding.UTF8).Contains("后加词\tzzzz\t90"), "undo must preserve subsequent additions");
+        // The deployment that follows a shortcut asks for that app's IME state.
+        string restoreDir = Path.Combine(root, "extensions", "manual_phrase");
+        string ready = Path.Combine(restoreDir, "restore-ascii.ready");
+        ManualPhraseStore.OriginApp = null;
+        ManualPhraseStore.WriteStateRestore(root);
+        Check(!Directory.Exists(restoreDir), "a request without an app must not ask for a restore");
+        ManualPhraseStore.OriginApp = "windowsterminal.exe";
+        ManualPhraseStore.OriginAscii = false;
+        ManualPhraseStore.WriteStateRestore(root);
+        Check(File.Exists(ready), "a deployment should publish one restore request");
+        Check(!File.Exists(Path.Combine(restoreDir, "restore-ascii.pending")), "the request must be written atomically");
+        string[] restore = File.ReadAllText(ready, Encoding.UTF8).Split('\t');
+        Check(restore[0] == "RIME_RESTORE_V1" && restore[1] == "windowsterminal.exe" && restore[2] == "0",
+            "the request should name the app and the Chinese mode");
+        long stamp;
+        Check(long.TryParse(restore[3], out stamp) && stamp > 0, "the request should carry a timestamp");
+        string published = File.ReadAllText(ready, Encoding.UTF8);
+        ManualPhraseStore.WriteStateRestore(root);
+        Check(File.ReadAllText(ready, Encoding.UTF8) == published,
+            "a deployment with no recorded app leaves the request for the Lua side to consume");
         Console.WriteLine("Passed " + checks + " store checks using an isolated temporary directory. No IME, UI or user dictionary was accessed.");
     }
 }

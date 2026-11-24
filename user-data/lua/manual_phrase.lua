@@ -10,6 +10,19 @@ function M.init(env)
   env.hotkey_down = false
 end
 
+-- The app name and the Chinese/English state found at the shortcut go along with
+-- the request. Saving a phrase redeploys, which rebuilds every session, and the
+-- manager then asks to put that state back.
+local function origin(env)
+  local ctx = env.engine.context
+  local app = ''
+  pcall(function() app = ctx:get_property('client_app') end)
+  if type(app) ~= 'string' then app = '' end
+  local ascii = false
+  pcall(function() ascii = ctx:get_option('ascii_mode') end)
+  return app:lower() .. '\t' .. (ascii and '1' or '0')
+end
+
 local function recent_input(ctx)
   local ok, text = pcall(function()
     local parts = {}
@@ -55,7 +68,8 @@ function M.func(key, env)
       text = recent_input(env.engine.context)
     end
     local mode = remove and 'delete' or 'add'
-    local written = request:write('RIME_PHRASE_V1\t' .. mode .. '\n' .. text)
+    local written = request:write('RIME_PHRASE_V1\t' .. mode .. '\t' .. origin(env)
+        .. '\n' .. text)
     local closed = request:close()
     if written and closed then
       os.remove(env.request)
